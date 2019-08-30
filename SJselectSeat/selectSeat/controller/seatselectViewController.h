@@ -11,12 +11,11 @@
 #import "selectSeatModel.h"
 
 @interface seatselectViewController : UIViewController
-
-@property (nonatomic, assign)  NSInteger pass;
-@property (nonatomic, assign)  NSUInteger row;
-@property (nonatomic, assign)  NSUInteger column;
-@property (retain, nonatomic)  SMScrollView *myScrollView;
-@property (nonatomic, assign)  CGSize seatSize;
+@property (assign, nonatomic)  NSInteger pass;
+@property (assign, nonatomic)  NSUInteger row;
+@property (assign, nonatomic)  NSUInteger column;
+@property (strong, nonatomic)  SMScrollView *myScrollView;
+@property (assign, nonatomic)  CGSize seatSize;
 @property (assign, nonatomic)  CGFloat seatTop;
 @property (assign, nonatomic)  CGFloat seatLeft;
 @property (assign, nonatomic)  CGFloat seatBottom;

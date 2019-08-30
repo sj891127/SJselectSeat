@@ -22,3 +22,7 @@
 #define kRowIndexWith   16.0
 #define kRowIndexSpace  2.0
 #define kRowIndexViewDefaultColor   [[UIColor blackColor] colorWithAlphaComponent:0.7]
+#define kCenterLineViewTail 6.0
+#define kKyoRowIndexViewFontName    @"Helvetica"
+#define kKyoRowIndexViewFontSize    10
+#define kKyoRowIndexViewColor    [UIColor whiteColor]

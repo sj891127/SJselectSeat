@@ -54,15 +54,6 @@
     self.imgSeatblack=[UIImage imageNamed:@"heiban"];
     self.imgSeatNo=[UIImage imageNamed:@"icon-zuowe-n"];
     self.rowIndexStick = YES;
-    NSMutableDictionary *dictSeatState = [NSMutableDictionary dictionary];
-    for (NSInteger row = 0; row < self.row; row++) {
-        NSMutableArray *arrayState = [NSMutableArray array];
-        for (NSInteger column = 0; column < self.column; column++) {
-            [arrayState addObject:@(KyoCinameSeatStateNormal)];
-        }
-        [dictSeatState setObject:arrayState forKey:@(row)];
-    }
-    self.myScrollView.contentSize = CGSizeMake((self.seatLeft + self.column * self.seatSize.width + self.seatRight) * self.myScrollView.zoomScale,(self.seatTop + self.row * self.seatSize.height + self.seatBottom) * self.myScrollView.zoomScale);
     if (!self.contentView) {
         self.contentView = [[UIView alloc] init];
         self.contentView.backgroundColor = UIColorFromRGB(0xFFFFFF);
@@ -73,11 +64,9 @@
     self.myScrollView = [[SMScrollView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
     self.myScrollView.maximumZoomScale = 1.5;
     self.myScrollView.delegate = self;
-    self.myScrollView.backgroundColor=[UIColor redColor];
     self.myScrollView.showsVerticalScrollIndicator = FALSE;
     self.myScrollView.showsHorizontalScrollIndicator = FALSE;
     self.myScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    self.myScrollView.contentSize = self.contentView.frame.size;
     self.myScrollView.alwaysBounceVertical = YES;
     self.myScrollView.alwaysBounceHorizontal = YES;
     self.myScrollView.stickToBounds = YES;
@@ -89,6 +78,7 @@
     //画座位
     [self drawSeat];
 }
+
 //画座位
 - (void)drawSeat{
     [self.seatBtnArr removeAllObjects];
@@ -96,8 +86,7 @@
         self.selectSeatMod=[self.seatdetail objectAtIndex:j];
         NSInteger column1=j%self.column;
         NSInteger row=j/self.column;
-        UIButton *btnSeat = nil;
-        btnSeat = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIButton *btnSeat = [UIButton buttonWithType:UIButtonTypeCustom];
         btnSeat.tag = j;
         [btnSeat addTarget:self action:@selector(btnSeatTouchIn:) forControlEvents:UIControlEventTouchUpInside];
         [self.seatBtnArr addObject:btnSeat];

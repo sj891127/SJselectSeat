@@ -1,25 +1,19 @@
 //
 //  SMScrollView.m
-//  CustomScrollView
+//  sijiedu
 //
-//  Created by smnh on 3/29/14.
-//  Copyright (c) 2014 smnh. All rights reserved.
+//  Created by sj on 2018/2/12.
+//  Copyright © 2018年 sjjy. All rights reserved.
 //
 
 #import "SMScrollView.h"
-#import "KyoRowIndexView.h"
 
 @interface SMScrollView ()
 @property (nonatomic, assign) CGSize prevBoundsSize;
 @property (nonatomic, assign) CGPoint prevContentOffset;
 @property (nonatomic, strong, readwrite) UIView *viewForZooming;
 @property (nonatomic, strong, readwrite) UITapGestureRecognizer *doubleTapGestureRecognizer;
-
-@property (weak, nonatomic) id scrollViewDelegate;  //用于存储delegate，防止野指针
-@property (assign, nonatomic) BOOL isFirstLogin;
-
-//临时添加
-@property (strong, nonatomic) KyoRowIndexView *rowIndexView;
+@property (weak, nonatomic) id scrollViewDelegate;
 
 @end
 
@@ -30,33 +24,17 @@
     if (self) {
         [self performInitialisation];
     }
-
-    return self;
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder {
-    self = [super initWithCoder:aDecoder];
-    if (self) {
-        [self performInitialisation];
-    }
     return self;
 }
 
 - (void)performInitialisation {
-    // Set the prevBoundsSize to the initial bounds, so the first time layoutSubviews
-    // is called we won't do any contentOffset adjustments
     self.prevBoundsSize = self.bounds.size;
     self.prevContentOffset = self.contentOffset;
-    //self.fitOnSizeChange = NO;
     self.fitOnSizeChange = YES;
-    //self.upscaleToFitOnSizeChange = YES;
     self.upscaleToFitOnSizeChange = NO;
     self.stickToBounds = NO;
     self.centerZoomingView = YES;
-    self.isFirstLogin = YES;
     self.minimumZoomScale = 1.0;
-
-    // Add double-tap-gesture-recognizer to zoom in and out when user double taps.
     self.doubleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_doubleTapped:)];
     self.doubleTapGestureRecognizer.numberOfTapsRequired = 2;
     [self addGestureRecognizer:self.doubleTapGestureRecognizer];
@@ -64,18 +42,15 @@
 
 - (void)setContentSize:(CGSize)contentSize {
     [super setContentSize:contentSize];
- //   [self _centerScrollViewContent];
 }
 
 - (void)setZoomScale:(CGFloat)zoomScale {
     [super setZoomScale:zoomScale];
-    // On iPhone 6+ iOS8, after setting zoomScale content, the contentSize becomes slightly bigger than bounds (e.g. 0.00001)
     self.contentSize = CGSizeMake(floorf(self.contentSize.width), floorf(self.contentSize.height));
 }
 
 - (void)scaleToFit {
     if (![self.delegate respondsToSelector:@selector(viewForZoomingInScrollView:)]) return
-
     [self _setMinimumZoomScaleToFit];
     self.zoomScale = self.minimumZoomScale;
 }
@@ -90,16 +65,7 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-
-    if(!_isFirstLogin){
-        self.minimumZoomScale = 0.7;
-    }
-    
-//    NSString *str1 = NSStringFromCGSize(self.prevBoundsSize);
-//    NSString *str2 = NSStringFromCGSize(self.bounds.size);
-
     if (!CGSizeEqualToSize(self.prevBoundsSize, self.bounds.size)) {
-
         if (self.fitOnSizeChange) {
             [self scaleToFit];
         } else {
@@ -108,14 +74,11 @@
         self.prevBoundsSize = self.bounds.size;
     }
     self.prevContentOffset = self.contentOffset;
-    
-    //[self _centerScrollViewContent];
 }
 
 - (void)_centerScrollViewContent {
     if (self.centerZoomingView && [self.delegate respondsToSelector:@selector(viewForZoomingInScrollView:)]) {
         UIView *zoomView = [self.delegate viewForZoomingInScrollView:self];
-
         CGRect frame = zoomView.frame;
         if (self.contentSize.width < self.bounds.size.width) {
             frame.origin.x = roundf((self.bounds.size.width - self.contentSize.width) / 2);
@@ -134,14 +97,10 @@
 - (void)_adjustContentOffset {
     if ([self.delegate respondsToSelector:@selector(viewForZoomingInScrollView:)]) {
         UIView *zoomView = [self.delegate viewForZoomingInScrollView:self];
-
-        // Using contentOffset and bounds values before the bounds were changed (e.g.: interface orientation change),
-        // find the visible center point in the unscaled coordinate space of the zooming view.
         CGPoint prevCenterPoint = (CGPoint){
             .x = (self.prevContentOffset.x + roundf(self.prevBoundsSize.width / 2) - zoomView.frame.origin.x) / self.zoomScale,
             .y = (self.prevContentOffset.y + roundf(self.prevBoundsSize.height / 2) - zoomView.frame.origin.y) / self.zoomScale,
         };
-
         if (self.stickToBounds) {
             if (self.contentSize.width > self.prevBoundsSize.width) {
                 if (self.prevContentOffset.x == 0) {
@@ -158,13 +117,9 @@
                 }
             }
         }
-
-        // If the size of the scrollView was changed such that the minimumZoomScale is increased
         if (self.upscaleToFitOnSizeChange) {
             [self _increaseScaleIfNeeded];
         }
-
-        // Calculate new contentOffset using the previously calculated center point and the new contentOffset and bounds values.
         CGPoint contentOffset = CGPointMake(0.0, 0.0);
         CGRect frame = zoomView.frame;
         if (self.contentSize.width > self.bounds.size.width) {
@@ -201,84 +156,43 @@
     UIView *zoomView = [self.delegate viewForZoomingInScrollView:self];
     CGSize scrollViewSize = self.bounds.size;
     CGSize zoomViewSize = zoomView.bounds.size;
-    
     CGFloat scaleToFit = fminf(scrollViewSize.width / zoomViewSize.width, scrollViewSize.height / zoomViewSize.height);
     if (scaleToFit > 1.0) {
         scaleToFit = 1.0;
     }else if (scaleToFit <0.7) {
         scaleToFit = 0.7;
     }
-    
-    if(_isFirstLogin){
-        scaleToFit = 1.0;
-        _isFirstLogin = NO;
-    }
+    scaleToFit = 1.0;
     self.minimumZoomScale = scaleToFit;
 }
 
 //点击放缩
 - (void)_doubleTapped:(UIGestureRecognizer *)gestureRecognizer {
-    /*
     if ([self.delegate respondsToSelector:@selector(viewForZoomingInScrollView:)]) {
-        
         UIView *zoomView = [self.delegate viewForZoomingInScrollView:self];
         if (self.zoomScale == self.minimumZoomScale) {
-            // When user double-taps on the scrollView while it is zoomed out, zoom-in
             CGFloat newScale = self.maximumZoomScale;
             CGPoint centerPoint = [gestureRecognizer locationInView:zoomView];
             CGRect zoomRect = [self _zoomRectInView:self forScale:newScale withCenter:centerPoint];
             [self zoomToRect:zoomRect animated:YES];
         } else {
-            // When user double-taps on the scrollView while it is zoomed, zoom-out
             [self setZoomScale:self.minimumZoomScale animated:YES];
         }
     }
-    */
-    self.isFirstLogin = NO;
 }
 
 - (CGRect)_zoomRectInView:(UIView *)view forScale:(CGFloat)scale withCenter:(CGPoint)center {
-
     CGRect zoomRect;
-
-    // The zoom rect is in the content view's coordinates.
-    // At a zoom scale of 1.0, it would be the size of the scrollView's bounds.
-    // As the zoom scale decreases, so more content is visible, the size of the rect grows.
     zoomRect.size.height = view.bounds.size.height / scale;
     zoomRect.size.width = view.bounds.size.width / scale;
-
-    // choose an origin so as to get the right center.
     zoomRect.origin.x = center.x - (zoomRect.size.width / 2.0);
     zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0);
-
     return zoomRect;
 }
-
-#pragma mark --------------------
-#pragma mark - Settings, Gettings
 
 - (void)setDelegate:(id<UIScrollViewDelegate>)delegate {
     [super setDelegate:delegate];
     self.scrollViewDelegate = delegate;
 }
 
-//- (void)drawRect:(CGRect)rect {
-//    self.rowIndexView = [[KyoRowIndexView alloc] init];
-//    self.rowIndexView.backgroundColor = [UIColor redColor];
-//        [self addSubview:self.rowIndexView];
-//    
-//    
-//    self.rowIndexView.row = 20;
-//    self.rowIndexView.width = 16.0;
-//    self.rowIndexView.rowIndexViewColor = [UIColor redColor];
-//    self.rowIndexView.frame = CGRectMake(10, 100, 20, 20);
-//    //self.rowIndexView.rowIndexType = self.rowIndexType;
-//    //self.rowIndexView.arrayRowIndex = self.arrayRowIndex;
-//    self.rowIndexView.hidden = NO;
-//
-//}
-
 @end
-// 版权属于原作者
-// http://code4app.com (cn) http://code4app.net (en)
-// 发布代码于最专业的源码分享网站: Code4App.com
